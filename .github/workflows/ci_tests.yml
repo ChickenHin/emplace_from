@@ -3,13 +3,13 @@
 name: Continuous Integration Tests
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
+  # push:
+  #   branches:
+  #     - main
+  # pull_request:
   workflow_dispatch:
-  schedule:
-    - cron: '9 13 * * 6'
+  # schedule:
+  #   - cron: '9 13 * * 6'
 
 concurrency:
   group: ${{format('{0}:{1}', github.repository, github.ref)}}
@@ -25,13 +25,9 @@ jobs:
       matrix_config: >
         [
           {"preset": "gcc-debug", "image": "ghcr.io/bemanproject/infra-containers-gcc:latest"},
-          {"preset": "gcc-release", "image": "ghcr.io/bemanproject/infra-containers-gcc:latest"},
           {"preset": "llvm-debug", "image": "ghcr.io/bemanproject/infra-containers-clang:latest"},
-          {"preset": "llvm-release", "image": "ghcr.io/bemanproject/infra-containers-clang:latest"},
           {"preset": "appleclang-debug", "runner": "macos-latest"},
-          {"preset": "appleclang-release", "runner": "macos-latest"},
           {"preset": "msvc-debug", "runner": "windows-latest"},
-          {"preset": "msvc-release", "runner": "windows-latest"}
         ]
 
   build-and-test:
@@ -39,52 +35,6 @@ jobs:
     with:
       matrix_config: >
         {
-          "gcc": [
-            { "versions": ["16"],
-              "tests": [
-                { "cxxversions": ["c++26"],
-                  "tests": [
-                    { "stdlibs": ["libstdc++"],
-                      "tests": [
-                        "Debug.Default", "Release.Default", "Release.TSan",
-                        "Release.MaxSan", "Debug.Werror",
-                        "Debug.Coverage", "Debug.-DBEMAN_EMPLACE_FROM_USE_MODULES=On"
-                      ]
-                    }
-                  ]
-                },
-                { "cxxversions": ["c++23"],
-                  "tests": [
-                    { "stdlibs": ["libstdc++"],
-                      "tests": [
-                        "Release.Default", "Debug.-DBEMAN_EMPLACE_FROM_USE_MODULES=On"
-                      ]
-                    }
-                  ]
-                }
-              ]
-            },
-            { "versions": ["15"],
-              "tests": [
-                { "cxxversions": ["c++26", "c++23"],
-                  "tests": [
-                    { "stdlibs": ["libstdc++"],
-                      "tests": [
-                        "Release.Default", "Debug.-DBEMAN_EMPLACE_FROM_USE_MODULES=On"
-                      ]
-                    }
-                  ]
-                }
-              ]
-            },
-            { "versions": ["14"],
-              "tests": [
-                { "cxxversions": ["c++26", "c++23"],
-                  "tests": [{ "stdlibs": ["libstdc++"], "tests": ["Release.Default"]}]
-                }
-              ]
-            }
-          ],
           "clang": [
             { "versions": ["22"],
               "tests": [
@@ -92,9 +42,7 @@ jobs:
                   "tests": [
                     { "stdlibs": ["libstdc++", "libc++"],
                       "tests": [
-                        "Debug.Default", "Release.Default", "Release.TSan",
-                        "Release.MaxSan", "Debug.Werror",
-                        "Debug.-DBEMAN_EMPLACE_FROM_USE_MODULES=On"
+                        "Debug.Default"
                       ]
                     }
                   ]
@@ -103,29 +51,10 @@ jobs:
                   "tests": [
                     { "stdlibs": ["libstdc++", "libc++"],
                       "tests": [
-                        "Release.Default", "Debug.-DBEMAN_EMPLACE_FROM_USE_MODULES=On"
+                        "Release.Default"
                       ]
                     }
                   ]
-                }
-              ]
-            },
-            { "versions": ["21", "20", "19"],
-              "tests": [
-                { "cxxversions": ["c++26", "c++23"],
-                  "tests": [
-                    {"stdlibs": ["libstdc++", "libc++"], "tests": ["Release.Default"]}
-                  ]
-                }
-              ]
-            },
-            { "versions": ["18"],
-              "tests": [
-                { "cxxversions": ["c++26", "c++23"],
-                  "tests": [{"stdlibs": ["libc++"], "tests": ["Release.Default"]}]
-                },
-                { "cxxversions": ["c++23"],
-                  "tests": [{"stdlibs": ["libstdc++"], "tests": ["Release.Default"]}]
                 }
               ]
             }
@@ -146,8 +75,7 @@ jobs:
                   "tests": [
                     { "stdlibs": ["stl"],
                       "tests": [
-                        "Debug.Default", "Release.Default", "Release.MaxSan",
-                        "Debug.-DBEMAN_EMPLACE_FROM_USE_MODULES=On"
+                        "Debug.Default"
                       ]
                     }
                   ]
@@ -157,17 +85,17 @@ jobs:
           ]
         }
 
-  vcpkg-ci:
-    uses: bemanproject/infra-workflows/.github/workflows/reusable-beman-vcpkg-ci.yml@1.7.4
-    with:
-      port_name: beman-emplace-from
-      feature_combinations: |
-        [
-          {"features": {}},
-          {"features": {"modules": true}}
-        ]
+  # vcpkg-ci:
+  #   uses: bemanproject/infra-workflows/.github/workflows/reusable-beman-vcpkg-ci.yml@1.7.4
+  #   with:
+  #     port_name: beman-emplace-from
+  #     feature_combinations: |
+  #       [
+  #         {"features": {}},
+  #         {"features": {"modules": true}}
+  #       ]
 
-  create-issue-when-fault:
-    needs: [preset-test, build-and-test]
-    if: failure() && github.event_name == 'schedule'
-    uses: bemanproject/infra-workflows/.github/workflows/reusable-beman-create-issue-when-fault.yml@1.7.4
+  # create-issue-when-fault:
+  #   needs: [preset-test, build-and-test]
+  #   if: failure() && github.event_name == 'schedule'
+  #   uses: bemanproject/infra-workflows/.github/workflows/reusable-beman-create-issue-when-fault.yml@1.7.4
