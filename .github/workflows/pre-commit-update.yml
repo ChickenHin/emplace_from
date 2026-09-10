@@ -4,8 +4,8 @@ name: Weekly pre-commit autoupdate
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "51 15 * * 6"
+  # schedule:
+  #   - cron: "51 15 * * 6"
 
 jobs:
   auto-update-pre-commit:
